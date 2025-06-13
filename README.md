@@ -33,12 +33,12 @@ An enhanced version of the original Text Summarizer, now with a modern UI and po
 
 <div style="display: flex; gap: 20px; justify-content: center; align-items: flex-start;">
   <div style="text-align: center;">
-    <p><strong>Base</strong></p>
-    <img src="https://github.com/user-attachments/assets/f1be032c-9688-43c0-8ff1-ea290b89323e" width="500" style="border: 2px solid #ccc; border-radius: 8px;"/>
+    <p><strong>Base UI Page</strong></p>
+    <img src="https://github.com/user-attachments/assets/56dfb248-9ff3-4fa6-a954-cd3cd1f0b9f3" width="500" style="border: 2px solid #ccc; border-radius: 8px;"/>
   </div>
   <div style="text-align: center;">
-    <p><strong>Generating Summary</strong></p>
-    <img src="https://github.com/user-attachments/assets/9d2f544b-c970-4278-9ff7-151325f18ae6" width="500" style="border: 2px solid #ccc; border-radius: 8px;"/>
+    <p><strong>Example Generated Summary</strong></p>
+    <img src="https://github.com/user-attachments/assets/3f4881e6-68c2-4248-af5e-afacadd4da85" width="500" style="border: 2px solid #ccc; border-radius: 8px;"/>
   </div>
 </div>
 
