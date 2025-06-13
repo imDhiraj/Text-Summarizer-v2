@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +29,26 @@ export default function TextSubmitPage() {
   const [showStyleOptions, setShowStyleOptions] = useState(false);
   const [showSentenceOptions, setShowSentenceOptions] = useState(false);
   const [currentSummaryInfo, setCurrentSummaryInfo] = useState(null);
+  const [styleDropdownDirection, setStyleDropdownDirection] = useState("down");
+  const [sentenceDropdownDirection, setSentenceDropdownDirection] = useState("down");
+
+  const styleButtonRef = useRef(null);
+  const sentenceButtonRef = useRef(null);
+
+  // Function to calculate dropdown direction
+  const calculateDropdownDirection = (buttonRef, dropdownHeight = 200) => {
+    if (!buttonRef.current) return "down";
+
+    const rect = buttonRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    // If there's not enough space below but enough above, open upward
+    return spaceBelow < dropdownHeight && spaceAbove > dropdownHeight
+      ? "up"
+      : "down";
+  };
 
   // Function to get sentence options based on summary style
   const getSentenceOptions = (style) => {
@@ -282,17 +302,23 @@ export default function TextSubmitPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   {/* Summary Style */}
                   <div className="space-y-2">
-                    <Label className="text-xs sm:text-sm font-medium flex items-center gap-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
                       {getSummaryIcon(summaryStyle)}
                       Summary Style
                     </Label>
                     <div className="relative">
                       <Button
+                        ref={styleButtonRef}
                         type="button"
                         variant="outline"
-                        className="w-full justify-between text-xs sm:text-sm h-9 sm:h-10"
+                        className="w-full justify-between text-sm h-11 sm:h-10"
                         onClick={(e) => {
                           e.stopPropagation();
+                          const direction = calculateDropdownDirection(
+                            styleButtonRef,
+                            250
+                          );
+                          setStyleDropdownDirection(direction);
                           setShowStyleOptions(!showStyleOptions);
                           setShowSentenceOptions(false);
                         }}
@@ -301,49 +327,57 @@ export default function TextSubmitPage() {
                           {summaryStyle.charAt(0).toUpperCase() +
                             summaryStyle.slice(1).replace("_", " ")}
                         </span>
-                        <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <ChevronDown className="h-4 w-4" />
                       </Button>
 
                       {showStyleOptions && (
-                        <div className="absolute z-30 w-full mt-1 bg-background border border-border rounded-md shadow-lg">
-                          {[
-                            {
-                              value: "concise",
-                              label: "Concise",
-                              desc: "Brief & focused (2-4 sentences)",
-                            },
-                            {
-                              value: "detailed",
-                              label: "Detailed",
-                              desc: "Comprehensive analysis (5-12 sentences)",
-                            },
-                            {
-                              value: "bullet_points",
-                              label: "Bullet Points",
-                              desc: "Key points listed (3-10 points)",
-                            },
-                          ].map((style) => (
-                            <button
-                              key={style.value}
-                              className="w-full px-3 py-2 sm:py-3 text-left hover:bg-muted focus:bg-muted focus:outline-none first:rounded-t-md last:rounded-b-md"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleStyleChange(style.value);
-                              }}
-                            >
-                              <div className="flex items-center gap-2">
-                                {getSummaryIcon(style.value)}
-                                <div className="min-w-0">
-                                  <div className="font-medium text-xs sm:text-sm truncate">
-                                    {style.label}
-                                  </div>
-                                  <div className="text-xs text-muted-foreground truncate">
-                                    {style.desc}
+                        <div
+                          className={`absolute z-50 w-full ${
+                            styleDropdownDirection === "up"
+                              ? "bottom-full mb-1"
+                              : "top-full mt-1"
+                          } bg-background border border-border rounded-md shadow-lg`}
+                        >
+                          <div className="max-h-60 overflow-y-auto py-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                            {[
+                              {
+                                value: "concise",
+                                label: "Concise",
+                                desc: "Brief & focused (2-4 sentences)",
+                              },
+                              {
+                                value: "detailed",
+                                label: "Detailed",
+                                desc: "Comprehensive analysis (5-12 sentences)",
+                              },
+                              {
+                                value: "bullet_points",
+                                label: "Bullet Points",
+                                desc: "Key points listed (3-10 points)",
+                              },
+                            ].map((style) => (
+                              <button
+                                key={style.value}
+                                className="w-full px-3 py-2 sm:py-3 text-left hover:bg-muted focus:bg-muted focus:outline-none transition-colors duration-150"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleStyleChange(style.value);
+                                }}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {getSummaryIcon(style.value)}
+                                  <div className="min-w-0 flex-1">
+                                    <div className="font-medium text-sm truncate">
+                                      {style.label}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground line-clamp-1">
+                                      {style.desc}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </button>
-                          ))}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -351,16 +385,22 @@ export default function TextSubmitPage() {
 
                   {/* Max Sentences - Updated to use dynamic options */}
                   <div className="space-y-2">
-                    <Label className="text-xs sm:text-sm font-medium">
+                    <Label className="text-sm font-medium">
                       Max Sentences/Points
                     </Label>
                     <div className="relative">
                       <Button
+                        ref={sentenceButtonRef}
                         type="button"
                         variant="outline"
-                        className="w-full justify-between text-xs sm:text-sm h-9 sm:h-10"
+                        className="w-full justify-between text-sm h-11 sm:h-10"
                         onClick={(e) => {
                           e.stopPropagation();
+                          const direction = calculateDropdownDirection(
+                            sentenceButtonRef,
+                            180
+                          );
+                          setSentenceDropdownDirection(direction);
                           setShowSentenceOptions(!showSentenceOptions);
                           setShowStyleOptions(false);
                         }}
@@ -371,27 +411,35 @@ export default function TextSubmitPage() {
                             ? "points"
                             : "sentences"}
                         </span>
-                        <ChevronDown className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <ChevronDown className="h-4 w-4" />
                       </Button>
 
                       {showSentenceOptions && (
-                        <div className="absolute z-30 w-full mt-1 bg-background border border-border rounded-md shadow-lg">
-                          {getSentenceOptions(summaryStyle).map((num) => (
-                            <button
-                              key={num}
-                              className="w-full px-3 py-2 text-left hover:bg-muted focus:bg-muted focus:outline-none first:rounded-t-md last:rounded-b-md text-xs sm:text-sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setMaxSentences(num);
-                                setShowSentenceOptions(false);
-                              }}
-                            >
-                              {num}{" "}
-                              {summaryStyle === "bullet_points"
-                                ? "points"
-                                : "sentences"}
-                            </button>
-                          ))}
+                        <div
+                          className={`absolute z-50 w-full ${
+                            sentenceDropdownDirection === "up"
+                              ? "bottom-full mb-1"
+                              : "top-full mt-1"
+                          } bg-background border border-border rounded-md shadow-lg`}
+                        >
+                          <div className="max-h-40 overflow-y-auto py-1 scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
+                            {getSentenceOptions(summaryStyle).map((num) => (
+                              <button
+                                key={num}
+                                className="w-full px-3 py-2 text-left hover:bg-muted focus:bg-muted focus:outline-none text-sm transition-colors duration-150"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMaxSentences(num);
+                                  setShowSentenceOptions(false);
+                                }}
+                              >
+                                {num}{" "}
+                                {summaryStyle === "bullet_points"
+                                  ? "points"
+                                  : "sentences"}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -403,17 +451,17 @@ export default function TextSubmitPage() {
                   <Button
                     onClick={handleSubmit}
                     disabled={isLoading || !inputText.trim() || !isValidLength}
-                    className="flex-1 text-xs sm:text-sm h-9 sm:h-10"
+                    className="flex-1 text-sm font-medium h-12 sm:h-10"
                     size="lg"
                   >
                     {isLoading ? (
                       <>
-                        <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         <span className="truncate">Generating summary...</span>
                       </>
                     ) : (
                       <>
-                        <Send className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                        <Send className="mr-2 h-4 w-4" />
                         <span className="truncate">Generate Summary</span>
                       </>
                     )}
@@ -424,9 +472,9 @@ export default function TextSubmitPage() {
                       onClick={clearAll}
                       variant="outline"
                       size="lg"
-                      className="sm:w-auto text-xs sm:text-sm h-9 sm:h-10"
+                      className="sm:w-auto text-sm font-medium h-12 sm:h-10"
                     >
-                      <Trash2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      <Trash2 className="mr-2 h-4 w-4" />
                       <span className="truncate">Clear All</span>
                     </Button>
                   )}
